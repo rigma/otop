@@ -1,3 +1,4 @@
+use hmac::{Hmac, Mac};
 use std::error::Error;
 use std::fmt;
 
@@ -16,6 +17,75 @@ impl Error for CryptoError {
     fn description(&self) -> &str {
         "Error occured during crypto process"
     }
+}
+
+#[cfg(feature = "sha1")]
+pub fn hmac_sha1(secret: &[u8], message: &[u8]) -> Result<Vec<u8>, CryptoError> {
+    use sha1::Sha1;
+    type HmacSha1 = Hmac<Sha1>;
+
+    let digest = HmacSha1::new_varkey(secret);
+    if digest.is_err() {
+        return Err(CryptoError {
+            kind: String::from("Invalid secret length")
+        });
+    }
+
+    let mut digest = digest.unwrap();
+    digest.input(message);
+
+    Ok(digest.result().code().to_vec())
+}
+
+#[cfg(not(feature = "sha1"))]
+pub fn hmac_sha1(_secret: &[u8], _message: &[u8]) -> Result<Vec<u8>, CryptoError> {
+    panic!("HMAC-SHA1 cipher algorithm is not implemented with your features");
+}
+
+#[cfg(feature = "sha256")]
+pub fn hmac_sha256(secret: &[u8], message: &[u8]) -> Result<Vec<u8>, CryptoError> {
+    use sha2::Sha256;
+    type HmacSha256 = Hmac<Sha256>;
+
+    let digest = HmacSha256::new_varkey(secret);
+    if digest.is_err() {
+        return Err(CryptoError {
+            kind: String::from("Invalid secret length")
+        });
+    }
+
+    let mut digest = digest.unwrap();
+    digest.input(message);
+
+    Ok(digest.result().code().to_vec())
+}
+
+#[cfg(not(feature = "sha256"))]
+pub fn hmac_sha256(_secret: &[u8], _message: &[u8]) -> Result<Vec<u8>, CryptoError> {
+    panic!("HMAC-SHA-256 cipher algorithm is not implemented with your features");
+}
+
+#[cfg(feature = "sha512")]
+pub fn hmac_sha512(secret: &[u8], message: &[u8]) -> Result<Vec<u8>, CryptoError> {
+    use sha2::Sha512;
+    type HmacSha512 = Hmac<Sha512>;
+
+    let digest = HmacSha512::new_varkey(secret);
+    if digest.is_err() {
+        return Err(CryptoError {
+            kind: String::from("Invalid secret length")
+        });
+    }
+
+    let mut digest = digest.unwrap();
+    digest.input(message);
+
+    Ok(digest.result().code().to_vec())
+}
+
+#[cfg(not(feature = "sha512"))]
+pub fn hmac_sha512(_secret: &[u8], _message: &[u8]) -> Result<Vec<u8>, CryptoError> {
+    panic!("HMAC-SHA1 cipher algorithm is not implemented with your features");
 }
 
 #[cfg(test)]

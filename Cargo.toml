@@ -8,3 +8,12 @@ description = "OTP password generation utilities"
 repository = "https://github.com/rigma/otop.git"
 
 [dependencies]
+hmac = "0.7.1"
+sha-1 = "0.8.1"
+sha2 = "0.8.0"
+
+[features]
+default = ["sha1", "sha256", "sha512"]
+sha1 = []
+sha256 = []
+sha512 = []

@@ -1,0 +1,10 @@
+[package]
+edition = "2018"
+name = "otop"
+version = "0.1.0"
+authors = ["rigma <rigbuntu@gmail.com>"]
+license = "MIT/Apache-2.0"
+description = "OTP password generation utilities"
+repository = "https://github.com/rigma/otop.git"
+
+[dependencies]

@@ -4,7 +4,7 @@ use std::fmt;
 
 #[derive(Debug)]
 pub struct CryptoError {
-    kind: String
+    kind: String,
 }
 
 impl fmt::Display for CryptoError {
@@ -27,7 +27,7 @@ pub fn hmac_sha1(secret: &[u8], message: &[u8]) -> Result<Vec<u8>, CryptoError> 
     let digest = HmacSha1::new_varkey(secret);
     if digest.is_err() {
         return Err(CryptoError {
-            kind: String::from("Invalid secret length")
+            kind: String::from("Invalid secret length"),
         });
     }
 
@@ -50,7 +50,7 @@ pub fn hmac_sha256(secret: &[u8], message: &[u8]) -> Result<Vec<u8>, CryptoError
     let digest = HmacSha256::new_varkey(secret);
     if digest.is_err() {
         return Err(CryptoError {
-            kind: String::from("Invalid secret length")
+            kind: String::from("Invalid secret length"),
         });
     }
 
@@ -73,7 +73,7 @@ pub fn hmac_sha512(secret: &[u8], message: &[u8]) -> Result<Vec<u8>, CryptoError
     let digest = HmacSha512::new_varkey(secret);
     if digest.is_err() {
         return Err(CryptoError {
-            kind: String::from("Invalid secret length")
+            kind: String::from("Invalid secret length"),
         });
     }
 

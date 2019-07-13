@@ -1,4 +1,4 @@
-trait Generator {
+pub trait Generator {
     type Error;
 
     fn get_value(&self) -> Result<&str, Self::Error>;

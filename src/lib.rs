@@ -5,3 +5,4 @@ extern crate sha1;
 extern crate sha2;
 
 mod crypto;
+mod generator;

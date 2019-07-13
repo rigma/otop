@@ -1,3 +1,23 @@
+use std::error::Error;
+use std::fmt;
+
+#[derive(Debug)]
+pub struct CryptoError {
+    kind: String
+}
+
+impl fmt::Display for CryptoError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Error occured during crypto process: {}", self.kind)
+    }
+}
+
+impl Error for CryptoError {
+    fn description(&self) -> &str {
+        "Error occured during crypto process"
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

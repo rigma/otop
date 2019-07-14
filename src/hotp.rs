@@ -131,8 +131,12 @@ impl Generator for HotpGenerator {
         };
 
         let mut value = value.to_string();
-        while value.len() < self.digits as usize {
-            value.insert(0, '0');
+        while value.len() != self.digits as usize {
+            if value.len() < self.digits as usize {
+                value.insert(0, '0');
+            } else {
+                value.pop();
+            }
         }
 
         Ok(value)

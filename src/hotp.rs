@@ -218,6 +218,18 @@ mod tests {
     }
 
     #[test]
+    fn should_compute_hotp_value_with_8_digits() {
+        let mut generator = HotpGenerator::new("Kittent", "Tacocat", b"tacocat");
+        generator.set_digits(8).unwrap();
+
+        let expected = "99475239";
+        let value = generator.get_value();
+
+        assert!(value.is_ok());
+        assert_eq!(expected, value.unwrap());
+    }
+
+    #[test]
     fn should_generate_otp_auth_uri() {
         let generator = HotpGenerator::new("Kitten", "Tacocat", b"tacocat");
         let expected = "otpauth://hotp/Tacocat:Kitten?secret=ORQWG33DMF2A%3D%3D%3D%3D&algorithm=SHA1&counter=0&digits=6";

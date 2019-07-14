@@ -28,11 +28,11 @@ impl Error for HotpError {
 
 #[derive(Debug)]
 pub struct HotpGenerator {
-    account: String,
-    provider: String,
+    pub account: String,
+    pub provider: String,
     secret: Vec<u8>,
-    issuer: Option<String>,
-    algorithm: GeneratorAlgorithm,
+    pub issuer: Option<String>,
+    pub algorithm: GeneratorAlgorithm,
     initial_counter: u64,
     counter: u64,
     digits: u8,
@@ -50,6 +50,26 @@ impl HotpGenerator {
             counter: DEFAULT_INITIAL_COUNTER,
             digits: DEFAULT_DIGITS,
         }
+    }
+
+    pub fn set_digits(&mut self, value: u8) -> Result<(), HotpError> {
+        if value != 6 && value != 8 {
+            return Err(HotpError {
+                kind: String::from("Wrong number of digits value"),
+            });
+        }
+
+        self.digits = value;
+        Ok(())
+    }
+
+    pub fn set_initial_counter(&mut self, value: u64) {
+        self.initial_counter = value;
+        self.counter = value;
+    }
+
+    pub fn reset_counter(&mut self) {
+        self.counter = self.initial_counter;
     }
 
     fn generate_value(

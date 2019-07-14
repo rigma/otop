@@ -2,6 +2,7 @@ use crate::crypto;
 use crate::generator::*;
 use std::error::Error;
 use std::fmt;
+use url::Url;
 
 pub const DEFAULT_ALGORITHM: GeneratorAlgorithm = GeneratorAlgorithm::HmacSha1;
 pub const DEFAULT_DIGITS: u8 = 6;
@@ -25,21 +26,25 @@ impl Error for HotpError {
 }
 
 pub struct HotpGenerator {
-    label: String,
+    account: String,
+    provider: String,
     secret: Vec<u8>,
     issuer: Option<String>,
     algorithm: GeneratorAlgorithm,
+    initial_counter: u64,
     counter: u64,
     digits: u8,
 }
 
 impl HotpGenerator {
-    pub fn new(secret: &[u8], label: &str) -> Self {
+    pub fn new(account: &str, provider: &str, secret: &[u8]) -> Self {
         HotpGenerator {
-            label: String::from(label),
+            account: String::from(account),
+            provider: String::from(provider),
             secret: Vec::from(secret),
             issuer: None,
             algorithm: DEFAULT_ALGORITHM,
+            initial_counter: DEFAULT_INITIAL_COUNTER,
             counter: DEFAULT_INITIAL_COUNTER,
             digits: DEFAULT_DIGITS,
         }
@@ -97,7 +102,39 @@ impl Generator for HotpGenerator {
     }
 
     fn get_otp_auth_uri(&self) -> Result<String, Self::Error> {
-        unimplemented!();
+        use data_encoding::BASE32;
+
+        let mut uri = Url::parse("otpauth://hotp/").unwrap();
+
+        // Setting label part (Provider and account)
+        match uri.path_segments_mut() {
+            Ok(mut path) => path.push(&format!("{}:{}", self.provider, self.account)),
+            _ => {
+                return Err(HotpError {
+                    kind: String::from("Wrong URI base"),
+                });
+            }
+        };
+
+        // Setting URI parameters
+        uri.query_pairs_mut()
+            .append_pair("secret", &BASE32.encode(&self.secret))
+            .append_pair(
+                "algorithm",
+                match self.algorithm {
+                    GeneratorAlgorithm::HmacSha1 => "SHA1",
+                    GeneratorAlgorithm::HmacSha256 => "SHA256",
+                    GeneratorAlgorithm::HmacSha512 => "SHA512",
+                },
+            )
+            .append_pair("counter", &self.initial_counter.to_string())
+            .append_pair("digits", &self.digits.to_string());
+
+        if let Some(issuer) = &self.issuer {
+            uri.query_pairs_mut().append_pair("issuer", &issuer);
+        }
+
+        Ok(String::from(uri.as_str()))
     }
 }
 
@@ -107,7 +144,7 @@ mod tests {
 
     #[test]
     fn should_compute_hotp_value() {
-        let mut generator = HotpGenerator::new(b"tacocat", "Tacocat");
+        let mut generator = HotpGenerator::new("Kitten", "Tacocat", b"tacocat");
         let expected = "994752391";
 
         let value = generator.get_value();
@@ -117,8 +154,11 @@ mod tests {
 
     #[test]
     fn should_generate_otp_auth_uri() {
-        let generator = HotpGenerator::new(b"tacocat", "Tacocat");
+        let generator = HotpGenerator::new("Kitten", "Tacocat", b"tacocat");
+        let expected = "otpauth://hotp/Tacocat:Kitten?secret=ORQWG33DMF2A%3D%3D%3D%3D&algorithm=SHA1&counter=0&digits=6";
 
-        assert!(generator.get_otp_auth_uri().is_ok());
+        let uri = generator.get_otp_auth_uri();
+        assert!(uri.is_ok());
+        assert_eq!(expected, uri.unwrap());
     }
 }

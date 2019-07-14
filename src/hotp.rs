@@ -1,3 +1,11 @@
+// Copyright 2019 Romain Failla
+//
+// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
+// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
+// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
+// option. This file may not be copied, modified, or distributed
+// except according to those terms.
+
 //! Provides an HOTP value generator.
 //!
 //! This generator can be used to generate HOTP value to perform a 2FA authentication

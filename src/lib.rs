@@ -7,6 +7,6 @@ extern crate sha2;
 extern crate url;
 
 pub mod hotp;
+pub mod generator;
 
 mod crypto;
-mod generator;

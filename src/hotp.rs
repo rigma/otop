@@ -182,9 +182,33 @@ mod tests {
     #[test]
     fn should_compute_hotp_value() {
         let mut generator = HotpGenerator::new("Kitten", "Tacocat", b"tacocat");
-        let expected = "994752391";
+        let expected = "994752";
 
         let value = generator.get_value();
+        assert!(value.is_ok());
+        assert_eq!(expected, value.unwrap());
+    }
+
+    #[test]
+    fn should_compute_hotp_value_sha256() {
+        let mut generator = HotpGenerator::new("Kitten", "Tacocat", b"tacocat");
+        generator.algorithm = GeneratorAlgorithm::HmacSha256;
+
+        let expected = "559555";
+        let value = generator.get_value();
+
+        assert!(value.is_ok());
+        assert_eq!(expected, value.unwrap());
+    }
+
+    #[test]
+    fn should_compute_hotp_value_sha512() {
+        let mut generator = HotpGenerator::new("Kitten", "Tacocat", b"tacocat");
+        generator.algorithm = GeneratorAlgorithm::HmacSha512;
+
+        let expected = "464093";
+        let value = generator.get_value();
+
         assert!(value.is_ok());
         assert_eq!(expected, value.unwrap());
     }

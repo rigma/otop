@@ -153,7 +153,6 @@ impl Generator for HotpGenerator {
         for i in (0..8).rev() {
             message[i] = ((self.counter >> (8 * i)) & 0xff) as u8;
         }
-        self.counter += 1;
 
         // Generates the HMAC-SHA hashe
         let hmac = self.generate_value(&self.secret, &message);
@@ -188,6 +187,7 @@ impl Generator for HotpGenerator {
             }
         }
 
+        self.counter += 1;
         Ok(value)
     }
 

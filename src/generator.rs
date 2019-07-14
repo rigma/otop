@@ -6,7 +6,7 @@ pub trait Generator {
     fn get_otp_auth_uri(&self) -> Result<String, Self::Error>;
 }
 
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum GeneratorAlgorithm {
     HmacSha1,
     HmacSha256,

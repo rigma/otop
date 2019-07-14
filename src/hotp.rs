@@ -1,5 +1,6 @@
 use crate::crypto;
 use crate::generator::*;
+use std::default::Default;
 use std::error::Error;
 use std::fmt;
 use url::Url;
@@ -25,6 +26,7 @@ impl Error for HotpError {
     }
 }
 
+#[derive(Debug)]
 pub struct HotpGenerator {
     account: String,
     provider: String,
@@ -59,6 +61,21 @@ impl HotpGenerator {
             GeneratorAlgorithm::HmacSha1 => crypto::hmac_sha1(secret, message),
             GeneratorAlgorithm::HmacSha256 => crypto::hmac_sha256(secret, message),
             GeneratorAlgorithm::HmacSha512 => crypto::hmac_sha512(secret, message),
+        }
+    }
+}
+
+impl Default for HotpGenerator {
+    fn default() -> Self {
+        HotpGenerator {
+            account: String::from(""),
+            provider: String::from(""),
+            secret: vec![],
+            issuer: None,
+            algorithm: DEFAULT_ALGORITHM,
+            initial_counter: DEFAULT_INITIAL_COUNTER,
+            counter: DEFAULT_INITIAL_COUNTER,
+            digits: DEFAULT_DIGITS,
         }
     }
 }

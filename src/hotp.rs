@@ -172,11 +172,7 @@ impl Generator for HotpGenerator {
 
         // Applying the RFC 4226 offset
         let hmac = hmac.unwrap();
-        let offset = (hmac[hmac.len() - 1] & 0x0f) as usize;
-        let value: u64 = (u64::from(hmac[offset] & 0x7f) << 24)
-            | (u64::from(hmac[offset + 1]) << 16)
-            | (u64::from(hmac[offset + 2]) << 8)
-            | u64::from(hmac[offset + 3]);
+        let value = otp_offset(&hmac);
 
         // Applying modulus based on number of digits
         let value = if self.digits == 8 {

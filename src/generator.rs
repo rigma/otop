@@ -9,7 +9,7 @@
 //! Provides the `Generator` trait and an enumeration of all algorithm used.
 
 /// Common trait of all OTP value generators of this trait.
-/// 
+///
 /// You may use it to define custom OTP value generator if you wish so.
 pub trait Generator {
     /// The error type associated with the OTP value generator.
@@ -33,4 +33,11 @@ pub enum GeneratorAlgorithm {
 
     /// THE HMAC-SHA-512 algorithm.
     HmacSha512,
+}
+
+/// Computes the OTP offset of an HMAC vector.
+pub fn otp_offset(hmac: &[u8]) -> u64 {
+    let offset = (hmac[hmac.len() - 1] & 0x0f) as usize;
+
+    (u64::from(hmac[offset] & 0x7f) << 24) | (u64::from(hmac[offset + 1]) << 16) | (u64::from(hmac[offset + 2]) << 8) | u64::from(hmac[offset + 3])
 }

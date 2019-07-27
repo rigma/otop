@@ -15,6 +15,12 @@ pub trait Generator {
     /// The error type associated with the OTP value generator.
     type Error;
 
+    ///  Sets the number of digits of generated OTP values.
+    fn set_digits(&mut self, value: u8) -> Result<(), Self::Error>;
+
+    /// Gets the number of digits of generated OTP values.
+    fn get_digits(&self) -> &u8;
+
     /// Computes an OTP value of an generator.
     fn get_value(&mut self) -> Result<String, Self::Error>;
 

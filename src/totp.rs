@@ -7,23 +7,23 @@
 // except according to those terms.
 
 //! Provides a TOTP value generator.
-//! 
+//!
 //! This generator can be used to generate Time-base One Time Password (TOTP) to perform a two-factor authentication
 //! or to generate an OTP auth URI which can be encoded in a QR code.
-//! 
+//!
 //! ## Example
 //! ```
 //! use otop::totp::TotpGenerator;
 //! use otop::Generator;
-//! 
+//!
 //! // Even if this generator does not use an internal counter, it shares the same trait as
 //! // `HotpGenerator`. As a result it has to be a mutable variable.
 //! let mut generator = TotpGenerator::new("Kitten", "Tacocat", b"tacocat");
-//! 
+//!
 //! // Compute a TOTP value.
 //! let value = generator.get_value();
 //! assert!(value.is_ok());
-//! 
+//!
 //! // Generates an URI to serialize this generator
 //! let uri = generator.get_otp_auth_uri();
 //! assert!(uri.is_ok());
@@ -101,23 +101,6 @@ impl TotpGenerator {
         }
     }
 
-    /// Sets the number of digits of generated TOTP values.
-    pub fn set_digits(&mut self, value: u8) -> Result<(), TotpError> {
-        if value != 6 && value != 8 {
-            return Err(TotpError {
-                kind: String::from("Wrong number of digits value"),
-            });
-        }
-
-        self.digits = value;
-        Ok(())
-    }
-
-    /// Gets the number of digits of generated TOTP values.
-    pub fn get_digits(&self) -> &u8 {
-        &self.digits
-    }
-
     /// Sets the epoch (eg. the beginning of time) of the generator.
     pub fn set_epoch(&mut self, epoch: u64) -> Result<(), TotpError> {
         self.epoch = DEFAULT_EPOCH + Duration::from_secs(epoch);
@@ -165,6 +148,23 @@ impl TotpGenerator {
 
 impl Generator for TotpGenerator {
     type Error = TotpError;
+
+    /// Sets the number of digits of generated TOTP values.
+    fn set_digits(&mut self, value: u8) -> Result<(), Self::Error> {
+        if value != 6 && value != 8 {
+            return Err(Self::Error {
+                kind: String::from("Wrong number of digits value"),
+            });
+        }
+
+        self.digits = value;
+        Ok(())
+    }
+
+    /// Gets the number of digits of generated TOTP values.
+    fn get_digits(&self) -> &u8 {
+        &self.digits
+    }
 
     /// Computes the next TOTP value based on the system current time.
     fn get_value(&mut self) -> Result<String, Self::Error> {

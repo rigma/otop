@@ -100,18 +100,6 @@ impl HotpGenerator {
         }
     }
 
-    /// Sets the number of digits of generated HOTP value.
-    pub fn set_digits(&mut self, value: u8) -> Result<(), HotpError> {
-        if value != 6 && value != 8 {
-            return Err(HotpError {
-                kind: String::from("Wrong number of digits value"),
-            });
-        }
-
-        self.digits = value;
-        Ok(())
-    }
-
     /// Sets the initial counter value and resets the internal counter.
     pub fn set_initial_counter(&mut self, value: u64) {
         self.initial_counter = value;
@@ -123,15 +111,11 @@ impl HotpGenerator {
         self.counter = self.initial_counter;
     }
 
-    fn generate_value(
-        &self,
-        secret: &[u8],
-        message: &[u8],
-    ) -> Result<Vec<u8>, crypto::CryptoError> {
+    fn generate_value(&self, message: &[u8]) -> Result<Vec<u8>, crypto::CryptoError> {
         match self.algorithm {
-            GeneratorAlgorithm::HmacSha1 => crypto::hmac_sha1(secret, message),
-            GeneratorAlgorithm::HmacSha256 => crypto::hmac_sha256(secret, message),
-            GeneratorAlgorithm::HmacSha512 => crypto::hmac_sha512(secret, message),
+            GeneratorAlgorithm::HmacSha1 => crypto::hmac_sha1(&self.secret, message),
+            GeneratorAlgorithm::HmacSha256 => crypto::hmac_sha256(&self.secret, message),
+            GeneratorAlgorithm::HmacSha512 => crypto::hmac_sha512(&self.secret, message),
         }
     }
 }
@@ -154,22 +138,38 @@ impl Default for HotpGenerator {
 impl Generator for HotpGenerator {
     type Error = HotpError;
 
+    /// Sets the number of digits of generated HOTP values.
+    fn set_digits(&mut self, value: u8) -> Result<(), Self::Error> {
+        if value != 6 && value != 8 {
+            return Err(Self::Error {
+                kind: String::from("Wrong number of digits value"),
+            });
+        }
+
+        self.digits = value;
+        Ok(())
+    }
+
+    /// Gets the number of digits of generated HOTP values.
+    fn get_digits(&self) -> &u8 {
+        &self.digits
+    }
+
     /// Computes the next HOTP value based on the internal counter value.
     fn get_value(&mut self) -> Result<String, Self::Error> {
         // Parsing the counter value into an HMAC-SHA message
         let message = encode_counter(&self.counter);
 
         // Generates the HMAC-SHA hashe
-        let hmac = self.generate_value(&self.secret, &message);
-        if hmac.is_err() {
-            return Err(HotpError {
+        let hmac = self.generate_value(&message);
+        if let Err(_) = hmac {
+            return Err(Self::Error {
                 kind: String::from("HMAC-SHA cipher error"),
             });
         }
 
         // Applying the RFC 4226 offset
-        let hmac = hmac.unwrap();
-        let value = otp_offset(&hmac);
+        let value = otp_offset(&hmac.unwrap());
 
         // Applying modulus based on number of digits
         let value = otp_value_to_string(&value, &self.digits);

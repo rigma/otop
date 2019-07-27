@@ -31,13 +31,13 @@ impl fmt::Display for TotpError {
 
 impl Error for TotpError {
     fn description(&self) -> &str {
-         "Error occured in HOTP value generator"
+        "Error occured in HOTP value generator"
     }
 }
 
 #[derive(Debug)]
 pub struct TotpGenerator {
-     /// The name of the account associated with this generator.
+    /// The name of the account associated with this generator.
     pub account: String,
 
     /// The name of the provider associated with this generator.
@@ -51,7 +51,7 @@ pub struct TotpGenerator {
     pub algorithm: GeneratorAlgorithm,
     digits: u8,
     epoch: SystemTime,
-    period: u64
+    period: u64,
 }
 
 impl TotpGenerator {

@@ -49,7 +49,10 @@ pub fn encode_counter(counter: &u64) -> [u8; 8] {
 pub fn otp_offset(hmac: &[u8]) -> u64 {
     let offset = (hmac[hmac.len() - 1] & 0x0f) as usize;
 
-    (u64::from(hmac[offset] & 0x7f) << 24) | (u64::from(hmac[offset + 1]) << 16) | (u64::from(hmac[offset + 2]) << 8) | u64::from(hmac[offset + 3])
+    (u64::from(hmac[offset] & 0x7f) << 24)
+        | (u64::from(hmac[offset + 1]) << 16)
+        | (u64::from(hmac[offset + 2]) << 8)
+        | u64::from(hmac[offset + 3])
 }
 
 /// Converts an OTP value into a string representation.

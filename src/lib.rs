@@ -18,5 +18,6 @@ extern crate url;
 
 pub mod generator;
 pub mod hotp;
+pub mod totp;
 
 mod crypto;

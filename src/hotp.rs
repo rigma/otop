@@ -8,7 +8,7 @@
 
 //! Provides an HOTP value generator.
 //!
-//! This generator can be used to generate HOTP value to perform a 2FA authentication
+//! This generator can be used to generate Hashed One Time Password (HOTP) value to perform a two-factor authentication
 //! or to generate an OTP auth URI which can be encoded into a QR code.
 //!
 //! ## Example
@@ -31,7 +31,6 @@
 
 use crate::crypto;
 use crate::generator::*;
-use std::default::Default;
 use std::error::Error;
 use std::fmt;
 use url::Url;
@@ -84,9 +83,7 @@ pub struct HotpGenerator {
 }
 
 impl HotpGenerator {
-    /// Instanciates a new instance of an HOTP generator.
-    ///
-    /// > Be awared that it instanciates a new generator! For now, there is no generator persistence.
+    /// Instanciates a **new** instance of an HOTP generator.
     pub fn new(account: &str, provider: &str, secret: &[u8]) -> Self {
         HotpGenerator {
             account: String::from(account),
@@ -116,21 +113,6 @@ impl HotpGenerator {
             GeneratorAlgorithm::HmacSha1 => crypto::hmac_sha1(&self.secret, message),
             GeneratorAlgorithm::HmacSha256 => crypto::hmac_sha256(&self.secret, message),
             GeneratorAlgorithm::HmacSha512 => crypto::hmac_sha512(&self.secret, message),
-        }
-    }
-}
-
-impl Default for HotpGenerator {
-    fn default() -> Self {
-        HotpGenerator {
-            account: String::from(""),
-            provider: String::from(""),
-            secret: vec![],
-            issuer: None,
-            algorithm: DEFAULT_ALGORITHM,
-            initial_counter: DEFAULT_INITIAL_COUNTER,
-            counter: DEFAULT_INITIAL_COUNTER,
-            digits: DEFAULT_DIGITS,
         }
     }
 }

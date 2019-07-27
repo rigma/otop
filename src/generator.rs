@@ -35,9 +35,39 @@ pub enum GeneratorAlgorithm {
     HmacSha512,
 }
 
+/// Transcribe an OTP counter from an unsigned 64 bits integer to an 8-bytes array.
+pub fn encode_counter(counter: &u64) -> [u8; 8] {
+    let mut message: [u8; 8] = [0; 8];
+    for i in (0..8).rev() {
+        message[i] = ((counter >> (8 * i)) & 0xff) as u8;
+    }
+
+    message
+}
+
 /// Computes the OTP offset of an HMAC vector.
 pub fn otp_offset(hmac: &[u8]) -> u64 {
     let offset = (hmac[hmac.len() - 1] & 0x0f) as usize;
 
     (u64::from(hmac[offset] & 0x7f) << 24) | (u64::from(hmac[offset + 1]) << 16) | (u64::from(hmac[offset + 2]) << 8) | u64::from(hmac[offset + 3])
+}
+
+/// Converts an OTP value into a string representation.
+pub fn otp_value_to_string(value: &u64, digits: &u8) -> String {
+    let output = if *digits == 8 {
+        *value % 100_000_000_000
+    } else {
+        *value % 1_000_000_000
+    };
+
+    let mut output = output.to_string();
+    while output.len() != *digits as usize {
+        if output.len() < *digits as usize {
+            output.insert(0, '0');
+        } else {
+            output.pop();
+        }
+    }
+
+    output
 }

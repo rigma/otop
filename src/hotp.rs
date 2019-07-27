@@ -157,10 +157,7 @@ impl Generator for HotpGenerator {
     /// Computes the next HOTP value based on the internal counter value.
     fn get_value(&mut self) -> Result<String, Self::Error> {
         // Parsing the counter value into an HMAC-SHA message
-        let mut message: [u8; 8] = [0; 8];
-        for i in (0..8).rev() {
-            message[i] = ((self.counter >> (8 * i)) & 0xff) as u8;
-        }
+        let message = encode_counter(&self.counter);
 
         // Generates the HMAC-SHA hashe
         let hmac = self.generate_value(&self.secret, &message);
@@ -175,21 +172,7 @@ impl Generator for HotpGenerator {
         let value = otp_offset(&hmac);
 
         // Applying modulus based on number of digits
-        let value = if self.digits == 8 {
-            value % 100_000_000_000
-        } else {
-            value % 1_000_000_000
-        };
-
-        // Checking that number of digits of the HOTP value
-        let mut value = value.to_string();
-        while value.len() != self.digits as usize {
-            if value.len() < self.digits as usize {
-                value.insert(0, '0');
-            } else {
-                value.pop();
-            }
-        }
+        let value = otp_value_to_string(&value, &self.digits);
 
         self.counter += 1;
         Ok(value)

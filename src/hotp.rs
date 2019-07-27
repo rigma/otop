@@ -13,8 +13,8 @@
 //!
 //! ## Example
 //! ```
-//! use otop::generator::Generator;
 //! use otop::hotp::HotpGenerator;
+//! use otop::Generator;
 //!
 //! // It is important to define a mutable reference if you want to generate values
 //! // because of the internal counter of the generator

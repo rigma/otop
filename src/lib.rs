@@ -16,8 +16,10 @@ extern crate sha1;
 extern crate sha2;
 extern crate url;
 
-pub mod generator;
 pub mod hotp;
 pub mod totp;
 
 mod crypto;
+mod generator;
+
+pub use generator::{Generator, GeneratorAlgorithm};

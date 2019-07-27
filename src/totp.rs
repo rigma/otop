@@ -178,12 +178,28 @@ impl Generator for TotpGenerator {
                     GeneratorAlgorithm::HmacSha512 => "SHA512",
                 },
             )
-            .append_pair("period", &self.period.to_string());
+            .append_pair("period", &self.period.to_string())
+            .append_pair("digits", &self.digits.to_string());
 
         if let Some(issuer) = &self.issuer {
             uri.query_pairs_mut().append_pair("issuer", &issuer);
         }
 
         Ok(String::from(uri.as_str()))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn should_generate_otp_auth_uri() {
+        let generator = TotpGenerator::new("Kitten", "Tacocat", b"tacocat");
+        let expected = "otpauth://totp/Tacocat:Kitten?secret=ORQWG33DMF2A%3D%3D%3D%3D&algorithm=SHA1&period=30&digits=6";
+
+        let uri = generator.get_otp_auth_uri();
+        assert!(uri.is_ok());
+        assert_eq!(expected, uri.unwrap());
     }
 }

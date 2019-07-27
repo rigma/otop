@@ -6,6 +6,29 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+//! Provides a TOTP value generator.
+//! 
+//! This generator can be used to generate Time-base One Time Password (TOTP) to perform a two-factor authentication
+//! or to generate an OTP auth URI which can be encoded in a QR code.
+//! 
+//! ## Example
+//! ```
+//! use otop::totp::TotpGenerator;
+//! use otop::Generator;
+//! 
+//! // Even if this generator does not use an internal counter, it shares the same trait as
+//! // `HotpGenerator`. As a result it has to be a mutable variable.
+//! let mut generator = TotpGenerator::new("Kitten", "Tacocat", b"tacocat");
+//! 
+//! // Compute a TOTP value.
+//! let value = generator.get_value();
+//! assert!(value.is_ok());
+//! 
+//! // Generates an URI to serialize this generator
+//! let uri = generator.get_otp_auth_uri();
+//! assert!(uri.is_ok());
+//! ```
+
 use crate::crypto;
 use crate::generator::*;
 use std::error::Error;
@@ -13,11 +36,19 @@ use std::fmt;
 use std::time::*;
 use url::Url;
 
+/// The default cryptographic algorithm for TOTP value generation.
 pub const DEFAULT_ALGORITHM: GeneratorAlgorithm = GeneratorAlgorithm::HmacSha1;
-pub const DEFAULT_DIGITS: u8 = 6;
-pub const DEFAULT_EPOCH: SystemTime = UNIX_EPOCH;
-pub const DEFAULT_TIME_STEP: u64 = 30;
 
+/// The default TOTP value's number of digits.
+pub const DEFAULT_DIGITS: u8 = 6;
+
+/// The default epoch to use with generator which is the Unix epoch.
+pub const DEFAULT_EPOCH: SystemTime = UNIX_EPOCH;
+
+/// The default period (in seconds) between each generator's _tick_.
+pub const DEFAULT_PERIOD: u64 = 30;
+
+/// Defines an error which has occured during runtime with the TOTP value generator.
 #[derive(Debug)]
 pub struct TotpError {
     kind: String,
@@ -35,6 +66,7 @@ impl Error for TotpError {
     }
 }
 
+/// A TOTP value generator which implements [IETF RFC 6238](https://tools.ietf.org/html/rfc6238) specification.
 #[derive(Debug)]
 pub struct TotpGenerator {
     /// The name of the account associated with this generator.
@@ -44,7 +76,7 @@ pub struct TotpGenerator {
     pub provider: String,
     secret: Vec<u8>,
 
-    /// The optional HOTP token issuer's name.
+    /// The optional TOTP token issuer's name.
     pub issuer: Option<String>,
 
     /// The algorithm used by the generator.
@@ -55,6 +87,7 @@ pub struct TotpGenerator {
 }
 
 impl TotpGenerator {
+    // Instanciates a **new** instance of a TOTP value generator.
     pub fn new(account: &str, provider: &str, secret: &[u8]) -> Self {
         TotpGenerator {
             account: String::from(account),
@@ -64,10 +97,11 @@ impl TotpGenerator {
             algorithm: DEFAULT_ALGORITHM,
             digits: DEFAULT_DIGITS,
             epoch: DEFAULT_EPOCH,
-            period: DEFAULT_TIME_STEP,
+            period: DEFAULT_PERIOD,
         }
     }
 
+    /// Sets the number of digits of generated TOTP values.
     pub fn set_digits(&mut self, value: u8) -> Result<(), TotpError> {
         if value != 6 && value != 8 {
             return Err(TotpError {
@@ -79,19 +113,24 @@ impl TotpGenerator {
         Ok(())
     }
 
+    /// Gets the number of digits of generated TOTP values.
     pub fn get_digits(&self) -> &u8 {
         &self.digits
     }
 
+    /// Sets the epoch (eg. the beginning of time) of the generator.
     pub fn set_epoch(&mut self, epoch: u64) -> Result<(), TotpError> {
         self.epoch = DEFAULT_EPOCH + Duration::from_secs(epoch);
         Ok(())
     }
 
+    /// Gets the epoch of the generator.
     pub fn get_epoch(&self) -> &SystemTime {
         &self.epoch
     }
 
+    /// Sets the period between each generator's _tick_. See Section 4.2 of [RFC 6238](https://tools.ietf.org/html/rfc6238)
+    /// for futher informations.
     pub fn set_period(&mut self, step: u64) -> Result<(), TotpError> {
         if step == 0 {
             return Err(TotpError {
@@ -103,10 +142,12 @@ impl TotpGenerator {
         Ok(())
     }
 
+    /// Retrieves the period between each generator's _tick_.
     pub fn get_period(&self) -> &u64 {
         &self.period
     }
 
+    /// Retrieves the current _tick_ of this generator based on the system current time.
     pub fn get_time_counter(&self) -> Result<u64, SystemTimeError> {
         let duration = SystemTime::now().duration_since(self.epoch)?;
 
@@ -125,6 +166,7 @@ impl TotpGenerator {
 impl Generator for TotpGenerator {
     type Error = TotpError;
 
+    /// Computes the next TOTP value based on the system current time.
     fn get_value(&mut self) -> Result<String, Self::Error> {
         // Generates the current time counter
         let time_counter = self.get_time_counter();
@@ -152,6 +194,7 @@ impl Generator for TotpGenerator {
         Ok(otp_value_to_string(&value, &self.digits))
     }
 
+    /// Retrieves the OTP auth URI value of this generator.
     fn get_otp_auth_uri(&self) -> Result<String, Self::Error> {
         use data_encoding::BASE32;
 
